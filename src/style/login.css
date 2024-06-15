@@ -1,0 +1,26 @@
+.login{
+    margin-top: 7rem;
+}
+.heading{
+    font-size: 40px;
+    font-weight: 600;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+/* .heading::after{
+    content:"";
+    width: 450px;
+    height: 4px;
+    border-radius: 4px;
+    bottom: -20px;
+    background-color: rgb(6, 212, 195);
+    position: absolute;
+} */
+
+.login-box{
+    padding: 20px;
+    border-radius: 30px;
+    box-shadow: 5px 4px 20px -6px rgb(0, 255, 242);
+}

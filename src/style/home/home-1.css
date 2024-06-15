@@ -1,0 +1,151 @@
+
+/* ---------------General Styling------------- */
+
+h1{
+    color: white !important;
+    font-family: Poppins-regular;
+    font-weight: 200;
+    /* letter-spacing: 5px; */
+}
+h6{
+    color: rgb(2, 151, 146) !important;
+    text-transform: capitalize;
+    font-family: Poppins-regular;
+    font-weight: 200;
+}
+#home{
+  /* display: flex; */
+  margin-top: 5%;
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  height: 85vh;
+  width: 100% !important;
+}
+
+
+
+/* ----------------Top Home----------------- */
+.top-home{
+  width: 100% !important;
+  height: 100vh;
+  position: relative;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  /* background-color: rgb(118, 112, 112); */
+
+}
+
+.tagline{
+  position: absolute;
+  letter-spacing: 5px;
+  top: 30%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  transition: all 1.5s ease-in-out !important;
+}
+
+.scrolled .tagline{
+  font-size: 2rem;
+  transform: translate(0,220px);
+  letter-spacing: 0;
+  opacity: 0;
+  transform: translateX(20%) !important;
+}
+
+.headline{
+  position: absolute;
+  top: 40%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #C8A21C !important;
+  transition: all 1.5s ease-in-out !important;
+}
+
+.scrolled .headline{
+  opacity: 0;
+  transform: translate(10%,270px) !important;
+}
+
+
+/* -----------------Bottom-Home------------------ */
+.bottom-home{
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  overflow-y: hidden;
+  overflow-x: hidden;
+  /* background-color: rgb(63, 63, 63); */
+}
+
+
+.tagline2{
+  opacity: 0;
+  position: absolute;
+  letter-spacing: 5px;
+  font-size: 2rem;
+  transition: all 1.5s ease-in-out;
+}
+
+.scrolled .tagline2{
+  opacity: 1;
+  left: 5%;
+  top: 40%;
+}
+
+.headline2{
+  font-size: 1rem;
+  opacity: 0;
+  color: #C8A21C !important;
+  transition: all 1.5s ease-in-out;
+}
+
+.scrolled .headline2{
+  /* padding-left: 10%; */
+  opacity: 1;
+  padding: 0;
+  margin: 0;
+  position: absolute;
+  color: white;
+  top: 47%;
+  left: 5%;
+}
+
+.input-bar {
+  opacity:  0;
+  position: absolute;
+  transition: all 1.2s ease-in-out !important;
+  width: 400px;
+}
+
+.scrolled .input-bar{
+  opacity: 1;
+  width: 35%;
+  left: 5%;
+}
+
+.scrolled .wrap2 {
+    overflow: hidden;
+    border-right: .15em solid rgb(0, 255, 238); /* Adjust color and size as needed */
+    white-space: nowrap;
+    margin: 0 auto;
+    animation: typing 3s steps(40, end), blink-caret .75s step-end infinite;
+  }
+  
+.btn{
+  border-radius: 0 5px 5px 0 !important;
+  background-color: #039b73 !important;
+}
+
+  /* --------------Animation---------------- */
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+  
+  @keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: rgb(0, 255, 238); }
+  }
+  
