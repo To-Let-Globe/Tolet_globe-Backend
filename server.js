@@ -4,7 +4,7 @@ const cors = require("cors");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 const mongoose = require("mongoose");
-const passportSetup = require("./passport");
+// const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
 const bodyParser = require("body-parser");
 const contactRoute = require("./routes/contact"); // Import contact route
@@ -13,7 +13,7 @@ const app = express();
 
 // Connect to MongoDB
 mongoose
-  .connect(`mongodb://localhost/Contactus`, {
+  .connect(process.env.URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
