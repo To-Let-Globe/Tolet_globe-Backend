@@ -62,7 +62,7 @@ app.use(
 
 // Use routes
 app.use("/auth", authRoute);
-app.use("/api", contactRoute); // Use contact route
+app.use("/contact", contactRoute); // Use contact route
 app.use("/blogs", blogRoutes);
 
 const port = process.env.PORT || 3001;
