@@ -9,6 +9,7 @@ const authRoute = require("./routes/auth");
 const bodyParser = require("body-parser");
 const blogRoutes = require("./routes/blog");
 const contactRoute = require("./routes/contact");
+const propertyRoute = require("./routes/property");
 const path = require("path"); 
 
 const app = express();
@@ -62,8 +63,9 @@ app.use(
 
 // Use routes
 app.use("/auth", authRoute);
-app.use("/contact", contactRoute); // Use contact route
+app.use("/contact", contactRoute); 
 app.use("/blogs", blogRoutes);
+app.use("/property", propertyRoute);
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
