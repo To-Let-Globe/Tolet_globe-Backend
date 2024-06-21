@@ -7,7 +7,9 @@ const mongoose = require("mongoose");
 // const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
 const bodyParser = require("body-parser");
-const contactRoute = require("./routes/contact"); // Import contact route
+const blogRoutes = require("./routes/blog");
+const contactRoute = require("./routes/contact");
+const path = require("path"); 
 
 const app = express();
 
@@ -25,8 +27,10 @@ mongoose
   });
 
 // Middleware to parse JSON request bodies
+
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(bodyParser.json());
 
 // Error handling middleware
@@ -50,7 +54,7 @@ app.use(passport.session());
 // CORS setup
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "*",
     methods: "GET,POST,PUT,DELETE",
     credentials: true,
   })
@@ -59,6 +63,7 @@ app.use(
 // Use routes
 app.use("/auth", authRoute);
 app.use("/api", contactRoute); // Use contact route
+app.use("/blogs", blogRoutes);
 
 const port = process.env.PORT || 3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
