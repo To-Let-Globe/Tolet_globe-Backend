@@ -95,10 +95,13 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const property = await Property.findById(req.params.id);
+    const commets = await Commet.find({ property_id: req.params.id });
+
     if (!property) {
       return res.status(404).json({ message: "Property not found" });
     }
-    res.json(property);
+
+    res.json({ property, commets });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -129,15 +132,29 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    const imgPath = path.join(__dirname, "..", deletedProperty.img);
-    if (fs.existsSync(imgPath)) {
-      fs.unlinkSync(imgPath);
+    const deletedCommets = await Commet.deleteMany({
+      property_id: req.params.id,
+    });
+
+    // Delete the property image
+    const propertyImgPath = path.join(__dirname, "..", deletedProperty.img);
+    if (fs.existsSync(propertyImgPath)) {
+      fs.unlinkSync(propertyImgPath);
     }
 
-    res.json({ message: "Property deleted" });
+    // Delete images associated with comments
+    deletedCommets.forEach((commet) => {
+      const commetImgPath = path.join(__dirname, "..", commet.img);
+      if (fs.existsSync(commetImgPath)) {
+        fs.unlinkSync(commetImgPath);
+      }
+    });
+
+    res.json({ message: "Property and associated comments deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 module.exports = router;
+
