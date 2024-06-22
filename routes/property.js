@@ -1,15 +1,73 @@
 const express = require("express");
 const router = express.Router();
 const Property = require("../models/Property");
+const Commet = require("../models/Commet");
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+// Set up multer for file storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads"));
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
 
 // Create a new property
-router.post("/", async (req, res) => {
+router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const property = new Property(req.body);
+    const propertyData = {
+      ...req.body,
+      img: `uploads/${req.file.filename}`,
+    };
+    const property = new Property(propertyData);
     const savedProperty = await property.save();
     res.status(201).json(savedProperty);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+// Create a new comment
+router.post(
+  "/commets/:propertyid",
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      const commetData = {
+        ...req.body,
+        property_id: req.params.propertyid,
+        img: `uploads/${req.file.filename}`,
+      };
+      const commet = new Commet(commetData);
+      const savedCommet = await commet.save();
+      res.status(201).json(savedCommet);
+    } catch (err) {
+      res.status(400).json({ message: err.message });
+    }
+  }
+);
+
+// Delete a comment by ID
+router.delete("/commets/:commetid", async (req, res) => {
+  try {
+    const deletedCommmit = await Commet.findByIdAndDelete(req.params.commetid);
+    if (!deletedCommmit) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    const imgPath = path.join(__dirname, "..", deletedCommmit.img);
+    if (fs.existsSync(imgPath)) {
+      fs.unlinkSync(imgPath);
+    }
+
+    res.json({ message: "Comment deleted" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
@@ -70,6 +128,12 @@ router.delete("/:id", async (req, res) => {
     if (!deletedProperty) {
       return res.status(404).json({ message: "Property not found" });
     }
+
+    const imgPath = path.join(__dirname, "..", deletedProperty.img);
+    if (fs.existsSync(imgPath)) {
+      fs.unlinkSync(imgPath);
+    }
+
     res.json({ message: "Property deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });
