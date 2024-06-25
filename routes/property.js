@@ -18,14 +18,19 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 // Create a new property
-router.post("/", upload.single("image"), async (req, res) => {
+router.post("/", upload.array("image", 10), async (req, res) => {
   try {
+    // Collect filenames of the uploaded files
+    const images = req.files.map((file) => `uploads/${file.filename}`);
+
     const propertyData = {
       ...req.body,
-      img: `uploads/${req.file.filename}`,
+      img: images, // Adjust the key to match your Property model
     };
+
     const property = new Property(propertyData);
     const savedProperty = await property.save();
+
     res.status(201).json(savedProperty);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -108,16 +113,31 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update a property by ID
-router.put("/:id", async (req, res) => {
+router.put("/:id", upload.array("image", 10), async (req, res) => {
   try {
-    const updatedProperty = await Property.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    );
-    if (!updatedProperty) {
+    const property = await Property.findById(req.params.id);
+    if (!property) {
       return res.status(404).json({ message: "Property not found" });
     }
+
+    // Collect filenames of the uploaded files
+    const newImages = req.files.map((file) => `uploads/${file.filename}`);
+
+    // Merge new images with existing images
+    const updatedImages = [...property.img, ...newImages];
+
+    // Update the property data
+    const updatedPropertyData = {
+      ...req.body,
+      img: updatedImages,
+    };
+
+    const updatedProperty = await Property.findByIdAndUpdate(
+      req.params.id,
+      updatedPropertyData,
+      { new: true }
+    );
+
     res.json(updatedProperty);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -132,23 +152,33 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    const deletedCommets = await Commet.deleteMany({
+    const deletedComments = await Commet.deleteMany({
       property_id: req.params.id,
     });
 
-    // Delete the property image
-    const propertyImgPath = path.join(__dirname, "..", deletedProperty.img);
-    if (fs.existsSync(propertyImgPath)) {
-      fs.unlinkSync(propertyImgPath);
+    // Delete the property images
+    if (deletedProperty.img && deletedProperty.img.length > 0) {
+      deletedProperty.img.forEach((imagePath) => {
+        const fullImagePath = path.join(__dirname, "..", imagePath);
+        if (fs.existsSync(fullImagePath)) {
+          fs.unlinkSync(fullImagePath);
+        }
+      });
     }
 
     // Delete images associated with comments
-    deletedCommets.forEach((commet) => {
-      const commetImgPath = path.join(__dirname, "..", commet.img);
-      if (fs.existsSync(commetImgPath)) {
-        fs.unlinkSync(commetImgPath);
-      }
-    });
+    if (deletedComments.length > 0) {
+      deletedComments.forEach((comment) => {
+        if (comment.img && comment.img.length > 0) {
+          comment.img.forEach((imagePath) => {
+            const fullImagePath = path.join(__dirname, "..", imagePath);
+            if (fs.existsSync(fullImagePath)) {
+              fs.unlinkSync(fullImagePath);
+            }
+          });
+        }
+      });
+    }
 
     res.json({ message: "Property and associated comments deleted" });
   } catch (err) {

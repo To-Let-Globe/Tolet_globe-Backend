@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const propertySchema = new mongoose.Schema({
   Timestamp: { type: Date, default: Date.now },
-  img: { type: String },
+  images: [String],
   price: { type: String },
   noOfRooms: { type: Number },
   noOfbathrooms: { type: Number },
