@@ -44,13 +44,13 @@ router.post("/", upload.single("image"), async (req, res, next) => {
     }
 
     // Parse the content using JSDOM
-    const dom = new JSDOM(content);
-    const finalContent = dom.window.document.body.textContent || content;
+    // const dom = new JSDOM(content);
+    // const finalContent = dom.window.document.body.textContent || content;
 
     // Create a new blog post
     const newBlog = await Blog.create({
       title,
-      content: finalContent,
+      content,
       author,
       img: `uploads/${req.file.filename}`, // Store the relative image path
     });
