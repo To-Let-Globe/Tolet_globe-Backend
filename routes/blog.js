@@ -56,8 +56,7 @@ router.post("/", upload.single("image"), async (req, res) => {
       .status(201)
       .json({ message: "Blog post created successfully", blog: newBlog });
   } catch (error) {
-    console.error("Error creating blog post:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    return res.status(500).json({ error });
   }
 });
 
@@ -69,8 +68,7 @@ router.get("/", async (req, res) => {
     // Respond with the fetched blogs as JSON
     res.status(200).json(blogs);
   } catch (error) {
-    console.error("Error fetching blogs:", error);
-    res.status(500).json({ message: "Error fetching blogs" });
+    res.status(500).json({ message: error });
   }
 });
 
