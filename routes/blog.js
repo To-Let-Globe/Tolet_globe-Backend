@@ -1,10 +1,11 @@
 const express = require("express");
-const router = express.Router();
-const { JSDOM } = require("jsdom");
 const Blog = require("../models/Blog"); // Corrected the import path
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
+
+const router = express.Router();
 
 // Set up multer for file storage
 const storage = multer.diskStorage({
@@ -17,22 +18,8 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Placeholder route to fetch all blog posts
-router.get("/", async (req, res) => {
-  try {
-    const blogs = await Blog.find().exec();
-    if (!blogs || blogs.length === 0) {
-      return res.status(404).json({ error: "No blogs available" });
-    }
-    return res.json(blogs);
-  } catch (err) {
-    console.error("Error fetching blogs:", err);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-// Route to create a new blog post
-router.post("/", upload.single("image"), async (req, res, next) => {
+// Route to create a new blog post with image upload to Cloudinary
+router.post("/", upload.single("image"), async (req, res) => {
   try {
     const { title, content, author } = req.body;
 
@@ -43,46 +30,47 @@ router.post("/", upload.single("image"), async (req, res, next) => {
         .json({ error: "Title, content, author, and image are required" });
     }
 
-    // Parse the content using JSDOM
-    // const dom = new JSDOM(content);
-    // const finalContent = dom.window.document.body.textContent || content;
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      folder: "uploads", // Optional: specify folder in Cloudinary
+      transformation: [
+        { width: 300, height: 300, crop: "fill" }, // Example transformation: resize and crop to 500x500
+        { fetch_format: "auto", quality: "auto" }, // Example optimization: auto format and quality
+      ],
+    });
 
-    // Create a new blog post
-    const newBlog = await Blog.create({
+    // Create a new blog post with Cloudinary URL
+    const newBlog = new Blog({
       title,
       content,
       author,
-      img: `uploads/${req.file.filename}`, // Store the relative image path
+      img: uploadResult.secure_url, // Store Cloudinary URL
     });
 
-    return res.status(201).json({ message: "Blog post created successfully" });
-  } catch (err) {
-    console.error("Error creating blog post:", err);
+    // Save blog post to MongoDB
+    await newBlog.save();
+
+    // Remove uploaded file from local storage
+    fs.unlinkSync(req.file.path);
+
+    return res
+      .status(201)
+      .json({ message: "Blog post created successfully", blog: newBlog });
+  } catch (error) {
+    console.error("Error creating blog post:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
 
-// Route to delete a blog post by ID
-router.delete("/:id", async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const blog = await Blog.findById(req.params.id);
-    if (!blog) {
-      return res.status(404).json({ error: "Blog not found" });
-    }
+    // Fetch all blogs from the database
+    const blogs = await Blog.find();
 
-    // Remove the associated image file
-    const imgPath = path.join(__dirname, "..", blog.img);
-    if (fs.existsSync(imgPath)) {
-      fs.unlinkSync(imgPath);
-    }
-
-    // Delete the blog post
-    await Blog.findByIdAndDelete(req.params.id);
-
-    return res.json({ message: "Blog post deleted successfully" });
-  } catch (err) {
-    console.error("Error deleting blog post:", err);
-    return res.status(500).json({ error: "Internal server error" });
+    // Respond with the fetched blogs as JSON
+    res.status(200).json(blogs);
+  } catch (error) {
+    console.error("Error fetching blogs:", error);
+    res.status(500).json({ message: "Error fetching blogs" });
   }
 });
 

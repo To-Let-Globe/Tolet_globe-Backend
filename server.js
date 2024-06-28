@@ -4,13 +4,12 @@ const cors = require("cors");
 const passport = require("passport");
 const cookieSession = require("cookie-session");
 const mongoose = require("mongoose");
-// const passportSetup = require("./passport");
 const authRoute = require("./routes/auth");
 const bodyParser = require("body-parser");
 const blogRoutes = require("./routes/blog");
 const contactRoute = require("./routes/contact");
 const propertyRoute = require("./routes/property");
-const path = require("path"); 
+const path = require("path");
 
 const app = express();
 
@@ -28,10 +27,15 @@ mongoose
   });
 
 // Middleware to parse JSON request bodies
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Serve static files from the uploads folder
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+console.log(
+  "Static files are being served from",
+  path.join(__dirname, "uploads")
+);
 app.use(bodyParser.json());
 
 // Error handling middleware
@@ -49,9 +53,6 @@ app.use(
   })
 );
 
-app.use(passport.initialize());
-app.use(passport.session());
-
 // CORS setup
 app.use(
   cors({
@@ -63,9 +64,9 @@ app.use(
 
 // Use routes
 app.use("/auth", authRoute);
-app.use("/contact", contactRoute); 
+app.use("/contact", contactRoute);
 app.use("/blogs", blogRoutes);
 app.use("/property", propertyRoute);
 
-const port = process.env.PORT || 3001;
+const port = 3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
