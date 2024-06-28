@@ -68,5 +68,5 @@ app.use("/contact", contactRoute);
 app.use("/blogs", blogRoutes);
 app.use("/property", propertyRoute);
 
-const port = 3001;
+const port = process.env.PORT||3001;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
