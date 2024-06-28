@@ -4,52 +4,41 @@ const Property = require("../models/Property");
 const Commet = require("../models/Commet");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
-const cloudinary = require("../config/cloudinary");
 
 // Set up multer for file storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, path.join(__dirname, "../uploads"));
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
+const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-// Function to upload an image to Cloudinary
-const uploadImageToCloudinary = (imagePath) => {
-  return cloudinary.uploader.upload(imagePath, {
-    folder: "uploads", // Optional: organize your images in a folder
+// Convert image file to base64 string
+const convertImageToBase64 = (buffer) => {
+  return buffer.toString("base64");
+};
+
+// Convert base64 string to image
+const convertBase64ToImage = (base64String, res) => {
+  const img = Buffer.from(base64String, "base64");
+  res.writeHead(200, {
+    "Content-Type": "image/jpeg",
+    "Content-Length": img.length,
   });
+  res.end(img);
 };
 
 // Create a new property
 router.post("/", upload.array("image", 10), async (req, res) => {
   try {
-    // Upload all images to Cloudinary
-    const uploadPromises = req.files.map((file) => {
-      const filePath = path.join(__dirname, "../uploads", file.filename);
-      return uploadImageToCloudinary(filePath);
+    // Convert all images to base64
+    const images = req.files.map((file) => {
+      return convertImageToBase64(file.buffer);
     });
-
-    const results = await Promise.all(uploadPromises);
-    const images = results.map((result) => result.secure_url);
 
     const propertyData = {
       ...req.body,
-      img: images, // Store Cloudinary URLs
+      img: images, // Store base64 strings
     };
 
     const property = new Property(propertyData);
     const savedProperty = await property.save();
-
-    // Clean up: delete local files after upload to Cloudinary
-    req.files.forEach((file) => {
-      const filePath = path.join(__dirname, "../uploads", file.filename);
-      fs.unlinkSync(filePath);
-    });
 
     res.status(201).json(savedProperty);
   } catch (err) {
@@ -63,20 +52,16 @@ router.post(
   upload.single("image"),
   async (req, res) => {
     try {
-      const filePath = path.join(__dirname, "../uploads", req.file.filename);
-      const result = await uploadImageToCloudinary(filePath);
+      const base64String = convertImageToBase64(req.file.buffer);
 
       const commetData = {
         ...req.body,
         property_id: req.params.propertyid,
-        img: result.secure_url,
+        img: base64String,
       };
 
       const commet = new Commet(commetData);
       const savedCommet = await commet.save();
-
-      // Clean up: delete local file after upload to Cloudinary
-      fs.unlinkSync(filePath);
 
       res.status(201).json(savedCommet);
     } catch (err) {
@@ -135,6 +120,39 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+// Get property images by ID and convert base64 string to images
+router.get("/:id/images", async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+
+    if (!property || !property.img || property.img.length === 0) {
+      return res.status(404).json({ message: "Property or images not found" });
+    }
+
+    // Return the first image as an example
+    const base64String = property.img[0]; // Assuming you want to convert the first image
+
+    convertBase64ToImage(base64String, res);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get comment images by ID and convert base64 string to images
+router.get("/commets/:commetid/image", async (req, res) => {
+  try {
+    const commet = await Commet.findById(req.params.commetid);
+
+    if (!commet || !commet.img) {
+      return res.status(404).json({ message: "Comment or image not found" });
+    }
+
+    convertBase64ToImage(commet.img, res);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Update a property by ID
 router.put("/:id", upload.array("image", 10), async (req, res) => {
   try {
@@ -143,14 +161,10 @@ router.put("/:id", upload.array("image", 10), async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    // Upload new images to Cloudinary
-    const uploadPromises = req.files.map((file) => {
-      const filePath = path.join(__dirname, "../uploads", file.filename);
-      return uploadImageToCloudinary(filePath);
+    // Convert new images to base64
+    const newImages = req.files.map((file) => {
+      return convertImageToBase64(file.buffer);
     });
-
-    const results = await Promise.all(uploadPromises);
-    const newImages = results.map((result) => result.secure_url);
 
     // Merge new images with existing images
     const updatedImages = [...property.img, ...newImages];
@@ -166,12 +180,6 @@ router.put("/:id", upload.array("image", 10), async (req, res) => {
       updatedPropertyData,
       { new: true }
     );
-
-    // Clean up: delete local files after upload to Cloudinary
-    req.files.forEach((file) => {
-      const filePath = path.join(__dirname, "../uploads", file.filename);
-      fs.unlinkSync(filePath);
-    });
 
     res.json(updatedProperty);
   } catch (err) {
