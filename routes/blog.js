@@ -86,11 +86,11 @@ router.get("/", async (req, res) => {
 router.get("/:id/image", async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
-
+    console.log(blog.img);
     if (!blog || !blog.img) {
       return res.status(404).json({ message: "Blog post or image not found" });
     }
-
+    
     // Convert the base64 string back to an image and send as response
     convertBase64ToImage(blog.img, res);
   } catch (error) {
