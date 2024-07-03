@@ -80,12 +80,11 @@ router.delete("/:id",async (req, res) => {
    }
 });
 
-
 // Route to fetch all blog posts
 router.get("/", async (req, res) => {
   try {
-    // Fetch all blogs from the database
-    const blogs = await Blog.find();
+    // Fetch all blogs from the database and sort them by createdAt in descending order
+    const blogs = await Blog.find().sort({ createdAt: -1 });
 
     // Respond with the fetched blogs as JSON
     res.status(200).json(blogs);
