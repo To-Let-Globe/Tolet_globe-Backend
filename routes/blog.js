@@ -1,8 +1,6 @@
 const express = require("express");
 const Blog = require("../models/Blog");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const router = express.Router();
 
 // Set up multer for file storage in memory

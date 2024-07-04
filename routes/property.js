@@ -3,7 +3,6 @@ const router = express.Router();
 const Property = require("../models/Property");
 const Commet = require("../models/Commet");
 const multer = require("multer");
-const path = require("path");
 
 // Set up multer for file storage
 const storage = multer.memoryStorage();
