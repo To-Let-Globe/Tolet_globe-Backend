@@ -194,7 +194,7 @@ router.delete("/:id", async (req, res) => {
       return res.status(404).json({ message: "Property not found" });
     }
 
-    const deletedComments = await Commet.deleteMany({
+   await Commet.deleteMany({
       property_id: req.params.id,
     });
 
