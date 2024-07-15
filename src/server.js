@@ -3,18 +3,18 @@ const express = require("express");
 const cors = require("cors");
 const cookieSession = require("cookie-session");
 const mongoose = require("mongoose");
-const authRoute = require("./routes/auth");
+const authRoute = require("../routes/auth");
 const bodyParser = require("body-parser");
-const blogRoutes = require("./routes/blog");
-const contactRoute = require("./routes/contact");
-const propertyRoute = require("./routes/property");
+const blogRoutes = require("../routes/blog");
+const contactRoute = require("../routes/contact");
+const propertyRoute = require("../routes/property");
 const path = require("path");
 
 const app = express();
 
 // Connect to MongoDB
 mongoose
-  .connect(process.env.URL, {
+  .connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
@@ -67,5 +67,5 @@ app.use("/contact", contactRoute);
 app.use("/blogs", blogRoutes);
 app.use("/property", propertyRoute);
 
-const port = process.env.PORT||5000;
+const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Listening on port ${port}...`));
